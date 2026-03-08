@@ -1,0 +1,8 @@
+{
+  "advice": "Quick Wins:\n- Replace public S3/NSG access with role-based or IP-scoped access while keeping non-prod sandboxes easy to reach.\n- Remove wildcard IAM permissions in production accounts; keep broader rights only in isolated experimentation accounts.\n\nMedium-Term Guardrails:\n- Publish Terraform/ARM templates that encode secure defaults (private buckets, JIT SSH, scoped IAM) and make them the easiest path.\n- Integrate this scanner into CI so new policies are checked automatically on every pull request.\n\nPolicy & Culture:\n- Position security rules as enablers of faster approvals (\"if you use the golden path, you auto-approve\").\n- Track and report \"time saved via automated policy checks\" as a KPI for both security and engineering leadership.",
+  "management_metrics": {
+    "total_scans": 6,
+    "total_time_saved_hours": 23.992,
+    "average_compliance_score": 92.5
+  }
+}

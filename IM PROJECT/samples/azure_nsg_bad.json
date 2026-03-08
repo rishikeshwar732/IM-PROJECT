@@ -1,0 +1,20 @@
+{
+  "name": "guardrail-ai-demo-nsg-bad",
+  "properties": {
+    "securityRules": [
+      {
+        "name": "Allow-SSH-From-Internet",
+        "properties": {
+          "priority": 100,
+          "direction": "Inbound",
+          "access": "Allow",
+          "protocol": "Tcp",
+          "sourceAddressPrefix": "0.0.0.0/0",
+          "destinationAddressPrefix": "*",
+          "destinationPortRange": "22"
+        }
+      }
+    ]
+  }
+}
+
