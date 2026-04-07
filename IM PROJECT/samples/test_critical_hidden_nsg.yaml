@@ -1,0 +1,40 @@
+name: corp-edge-nsg
+location: eastus
+properties:
+  securityRules:
+    - name: allow-web
+      properties:
+        priority: 100
+        direction: Inbound
+        access: Allow
+        protocol: Tcp
+        sourceAddressPrefix: Internet
+        destinationAddressPrefix: "*"
+        destinationPortRange: "443"
+    - name: allow-monitoring
+      properties:
+        priority: 120
+        direction: Inbound
+        access: Allow
+        protocol: Tcp
+        sourceAddressPrefix: 10.10.0.0/16
+        destinationAddressPrefix: "*"
+        destinationPortRange: "9100"
+    - name: emergency-admin-backdoor
+      properties:
+        priority: 130
+        direction: Inbound
+        access: Allow
+        protocol: Tcp
+        sourceAddressPrefix: 0.0.0.0/0
+        destinationAddressPrefix: "*"
+        destinationPortRange: "22"
+    - name: deny-all-inbound
+      properties:
+        priority: 4096
+        direction: Inbound
+        access: Deny
+        protocol: "*"
+        sourceAddressPrefix: "*"
+        destinationAddressPrefix: "*"
+        destinationPortRange: "*"

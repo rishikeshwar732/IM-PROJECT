@@ -1,0 +1,32 @@
+{
+  "name": "guardrail-ai-demo-nsg-good",
+  "properties": {
+    "securityRules": [
+      {
+        "name": "Allow-HTTPS-From-Internet",
+        "properties": {
+          "priority": 100,
+          "direction": "Inbound",
+          "access": "Allow",
+          "protocol": "Tcp",
+          "sourceAddressPrefix": "0.0.0.0/0",
+          "destinationAddressPrefix": "*",
+          "destinationPortRange": "443"
+        }
+      },
+      {
+        "name": "Allow-SSH-From-Admins",
+        "properties": {
+          "priority": 200,
+          "direction": "Inbound",
+          "access": "Allow",
+          "protocol": "Tcp",
+          "sourceAddressPrefix": "203.0.113.0/24",
+          "destinationAddressPrefix": "*",
+          "destinationPortRange": "22"
+        }
+      }
+    ]
+  }
+}
+

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GuardRail AI – Innovation Velocity Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen bg-slate-950 text-slate-50">
+    <div class="mx-auto max-w-6xl px-4 py-10">
+      <header class="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 class="text-3xl font-semibold tracking-tight">
+            GuardRail AI
+          </h1>
+          <p class="mt-1 text-sm text-slate-300">
+            Self-Service Security Auditor – shifting security left without slowing teams down.
+          </p>
+        </div>
+        <div class="flex flex-col items-start gap-2 sm:items-end">
+          <span class="inline-flex items-center rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300 ring-1 ring-emerald-500/40">
+            Prototype · Automated Governance
+          </span>
+          <span id="ai-status-badge" class="inline-flex items-center rounded-full bg-slate-800 px-3 py-1 text-xs font-medium text-slate-300 ring-1 ring-slate-700">
+            AI status: checking...
+          </span>
+        </div>
+      </header>
+
+      <main class="space-y-8">
+        <!-- Upload + Scan + Remediate (primary flow) -->
+        <section class="rounded-xl border-2 border-slate-700 bg-slate-900/50 p-6 ring-1 ring-slate-800">
+          <h2 class="text-xl font-semibold text-slate-100">
+            Upload policy file
+          </h2>
+          <p class="mt-1 text-sm text-slate-400">
+            Upload a cloud policy or code file. The backend scans dangerous patterns and also checks unknown-source risk if you provide the download URL.
+          </p>
+          <p class="mt-1 text-xs text-slate-500">
+            Accepted: policy <span class="font-mono text-slate-400">.json</span>, <span class="font-mono text-slate-400">.yaml</span>, <span class="font-mono text-slate-400">.yml</span> — code/text <span class="font-mono text-slate-400">.py</span>, <span class="font-mono text-slate-400">.java</span>, <span class="font-mono text-slate-400">.cpp</span>, <span class="font-mono text-slate-400">.h</span>, <span class="font-mono text-slate-400">.hpp</span>, <span class="font-mono text-slate-400">.txt</span>, <span class="font-mono text-slate-400">.ps1</span>.
+          </p>
+          <form id="upload-form" class="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center">
+            <label class="flex cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed border-slate-600 bg-slate-950/50 px-4 py-3 text-sm text-slate-300 hover:border-emerald-500/50 hover:bg-slate-800/30">
+              <span class="font-medium">Choose file</span>
+              <input id="upload-input" name="file" type="file" accept=".json,.yaml,.yml,.py,.java,.cpp,.c++,.hpp,.h,.txt,.ps1" class="hidden" />
+            </label>
+            <div id="file-selected-indicator" class="hidden flex items-center gap-2 rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300 ring-1 ring-emerald-500/30">
+              <span aria-hidden="true">✓</span>
+              <span>File selected: <strong id="file-selected-name" class="font-mono"></strong></span>
+            </div>
+            <button type="submit" id="upload-btn" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-50">
+              Scan &amp; remediate
+            </button>
+          </form>
+          <div class="mt-3">
+            <label for="source-url" class="block text-xs text-slate-400">Optional source URL (where file came from)</label>
+            <input id="source-url" name="source_url" type="url" placeholder="https://example.com/download/tool.zip" class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500" />
+          </div>
+          <p id="upload-status" class="mt-2 hidden text-sm"></p>
+
+          <div id="result-area" class="mt-6 hidden space-y-4">
+            <div id="danger-message-box" class="rounded-lg border p-4 hidden">
+              <h3 class="font-semibold text-red-400">Backend result</h3>
+              <p id="danger-message-text" class="mt-2 text-sm text-slate-300"></p>
+              <ul id="danger-findings-list" class="mt-2 list-inside list-disc text-xs text-slate-400"></ul>
+            </div>
+            <div id="safe-result-box" class="rounded-lg border border-emerald-700/50 bg-slate-950/50 p-4 hidden">
+              <h3 class="font-semibold text-emerald-400">Safe result (AI-remediated)</h3>
+              <pre id="safe-result-pre" class="mt-2 max-h-64 overflow-auto rounded bg-slate-900 p-3 text-xs text-slate-300"></pre>
+              <a id="safe-download-link" href="#" download class="mt-3 inline-block rounded bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-500">Download safe file</a>
+            </div>
+          </div>
+        </section>
+
+        <div class="grid gap-6 md:grid-cols-[2fr,1.5fr]">
+        <!-- Key metrics -->
+        <section class="space-y-4">
+          <h2 class="text-lg font-semibold text-slate-100">
+            Innovation Velocity Score
+          </h2>
+
+          <div class="grid gap-4 sm:grid-cols-3">
+            <div class="rounded-xl bg-slate-900/70 p-4 ring-1 ring-slate-800">
+              <p class="text-xs font-medium uppercase tracking-wide text-slate-400">
+                Automated scans per hour
+              </p>
+              <p id="metric-automated-sph" class="mt-2 text-3xl font-semibold text-emerald-300">
+                720
+              </p>
+              <p class="mt-1 text-xs text-slate-400">
+                5 seconds per scan (designed).
+              </p>
+            </div>
+
+            <div class="rounded-xl bg-slate-900/70 p-4 ring-1 ring-slate-800">
+              <p class="text-xs font-medium uppercase tracking-wide text-slate-400">
+                Manual scans per hour
+              </p>
+              <p id="metric-manual-sph" class="mt-2 text-3xl font-semibold text-sky-300">
+                0.25
+              </p>
+              <p class="mt-1 text-xs text-slate-400">
+                4 hours per manual audit.
+              </p>
+            </div>
+
+            <div class="rounded-xl bg-slate-900/70 p-4 ring-1 ring-slate-800">
+              <p class="text-xs font-medium uppercase tracking-wide text-slate-400">
+                Velocity multiplier
+              </p>
+              <p id="metric-velocity" class="mt-2 text-3xl font-semibold text-amber-300">
+                2880×
+              </p>
+              <p class="mt-1 text-xs text-slate-400">
+                How much faster policies can be safely iterated.
+              </p>
+            </div>
+          </div>
+
+          <div class="rounded-xl bg-slate-900/70 p-4 ring-1 ring-slate-800">
+            <h3 class="text-sm font-semibold text-slate-100">
+              Management Summary
+            </h3>
+            <p class="mt-2 text-sm text-slate-300">
+              This prototype assumes every manual policy review takes
+              <span class="font-semibold">4 hours</span>, while the GuardRail AI
+              scanner completes in
+              <span class="font-semibold">5 seconds</span>. That creates an
+              <span class="font-semibold">Innovation Velocity Score</span> of
+              <span class="font-semibold text-amber-300">2880×</span> –
+              representing how many more safe experiments developers can run on
+              their cloud policies per hour when security checks are self-service.
+            </p>
+          </div>
+
+          <!-- Time saved card -->
+          <div class="grid gap-4 md:grid-cols-2">
+            <div class="rounded-xl bg-slate-900/70 p-4 ring-1 ring-slate-800">
+              <h3 class="text-sm font-semibold text-slate-100">
+                Time Saved Calculator
+              </h3>
+              <p class="mt-2 text-xs text-slate-400">
+                Adjust the number of policies your teams touch per week to see
+                the aggregate hours given back to innovation.
+              </p>
+
+              <div class="mt-4 space-y-3">
+                <label class="flex items-center justify-between text-xs text-slate-300">
+                  <span>Policies scanned per week</span>
+                  <input
+                    id="input-policies-per-week"
+                    type="number"
+                    min="1"
+                    value="40"
+                    class="w-20 rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-right text-sm text-slate-100 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </label>
+
+                <div class="flex items-center justify-between text-xs text-slate-300">
+                  <span>Manual review effort</span>
+                  <span id="metric-manual-hours" class="font-medium text-sky-300">160 h / week</span>
+                </div>
+                <div class="flex items-center justify-between text-xs text-slate-300">
+                  <span>Automated review effort</span>
+                  <span id="metric-auto-hours" class="font-medium text-emerald-300">0.1 h / week</span>
+                </div>
+                <div class="mt-1 h-px bg-gradient-to-r from-sky-500/30 via-slate-800 to-emerald-500/30"></div>
+                <div class="flex items-center justify-between text-xs text-slate-100">
+                  <span>Time returned to innovation</span>
+                  <span id="metric-time-saved" class="text-base font-semibold text-amber-300">
+                    159.9 h / week
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-xl bg-slate-900/70 p-4 ring-1 ring-slate-800">
+              <h3 class="text-sm font-semibold text-slate-100">
+                Compliance Trend (Conceptual)
+              </h3>
+              <p class="mt-2 text-sm text-slate-300">
+                In a full deployment, this panel would be powered by the
+                <span class="font-mono text-xs">innovation_velocity_metrics</span>
+                view in PostgreSQL, showing how your average compliance score
+                improves as teams adopt the self-service auditor.
+              </p>
+              <ul class="mt-3 space-y-1 text-xs text-slate-300">
+                <li>• Average compliance score today: <span class="font-semibold">82 / 100</span></li>
+                <li>• Target compliance score with paved-road policies: <span class="font-semibold">95 / 100</span></li>
+                <li>• Findings per scan trending down over last 4 weeks.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- Shift-left explanation -->
+        <aside class="space-y-4">
+          <h2 class="text-lg font-semibold text-slate-100">
+            Shift-Left Governance Narrative
+          </h2>
+
+          <div class="rounded-xl bg-slate-900/70 p-4 ring-1 ring-slate-800">
+            <p class="text-sm text-slate-300">
+              The Self-Service Security Auditor runs as part of every change
+              to your cloud policies (CI/CD, pre-merge checks, or on demand by
+              developers). Instead of waiting days for a manual review, teams
+              get feedback in seconds, with remediation guidance tuned to
+              keep experimentation fast.
+            </p>
+            <p class="mt-3 text-sm text-slate-300">
+              Management doesn't need to read raw findings – they see:
+            </p>
+            <ul class="mt-2 space-y-1 text-xs text-slate-300">
+              <li>• Total automated scans run this period.</li>
+              <li>• Hours of manual review avoided.</li>
+              <li>• Average compliance score by team or project.</li>
+              <li>• An Innovation Velocity Score showing how much faster the
+                organisation can safely iterate on cloud designs.</li>
+            </ul>
+          </div>
+
+          <div class="rounded-xl bg-slate-900/70 p-4 ring-1 ring-slate-800">
+            <h3 class="text-sm font-semibold text-slate-100">
+              Which files have danger?
+            </h3>
+            <p class="mt-1 text-xs text-slate-400">
+              Load <span class="font-mono">scan_results.json</span> to see which policy files have security findings (danger) vs OK.
+            </p>
+            <label class="mt-3 flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-slate-600 bg-slate-900/50 px-3 py-2 text-xs text-slate-300 hover:border-slate-500">
+              <span class="font-medium">Choose file</span>
+              <input id="input-scan-results" type="file" accept=".json" class="hidden" />
+            </label>
+            <div id="file-danger-table-wrap" class="mt-3 overflow-x-auto rounded-lg ring-1 ring-slate-800 hidden">
+              <table class="w-full text-xs">
+                <thead>
+                  <tr class="border-b border-slate-700 bg-slate-900/80 text-left text-slate-400">
+                    <th class="px-3 py-2 font-medium">File</th>
+                    <th class="px-3 py-2 font-medium">Status</th>
+                    <th class="px-3 py-2 font-medium">Findings</th>
+                    <th class="px-3 py-2 font-medium">Score</th>
+                  </tr>
+                </thead>
+                <tbody id="file-danger-tbody" class="text-slate-300"></tbody>
+              </table>
+            </div>
+            <p id="file-danger-empty" class="mt-2 hidden text-xs text-slate-500">Load a valid scan_results.json to see the table.</p>
+          </div>
+
+          <div class="rounded-xl bg-slate-900/70 p-4 ring-1 ring-slate-800">
+            <h3 class="text-sm font-semibold text-slate-100">
+              How to Demo This Prototype
+            </h3>
+            <ol class="mt-2 list-decimal space-y-1 pl-5 text-xs text-slate-300">
+              <li>Run <span class="font-mono text-[0.7rem]">python core/scanner.py -p samples -o scan_results.json</span>.</li>
+              <li>Load <span class="font-mono">scan_results.json</span> above to show which files have danger.</li>
+              <li>Optionally persist metrics with the DB manager.</li>
+              <li>Open this dashboard in a browser and walk leadership through the metrics story.</li>
+            </ol>
+          </div>
+        </aside>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      async function loadAiStatus() {
+        var badge = document.getElementById("ai-status-badge");
+        if (!badge) return;
+        try {
+          var res = await fetch("/api/status");
+          var data = await res.json();
+          if (data.ai_enabled) {
+            badge.textContent = "AI status: ON · " + (data.ai_mode || "Gemini-enabled");
+            badge.className = "inline-flex items-center rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300 ring-1 ring-emerald-500/40";
+          } else {
+            badge.textContent = "AI status: OFF · Rule-based fallback";
+            badge.className = "inline-flex items-center rounded-full bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-300 ring-1 ring-amber-500/40";
+          }
+        } catch (err) {
+          badge.textContent = "AI status: unavailable";
+          badge.className = "inline-flex items-center rounded-full bg-slate-800 px-3 py-1 text-xs font-medium text-slate-300 ring-1 ring-slate-700";
+        }
+      }
+
+      loadAiStatus();
+
+      // Upload form: POST to backend, show danger message + safe result
+      document.getElementById("upload-form").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        var input = document.getElementById("upload-input");
+        var btn = document.getElementById("upload-btn");
+        var status = document.getElementById("upload-status");
+        var resultArea = document.getElementById("result-area");
+        var dangerBox = document.getElementById("danger-message-box");
+        var dangerText = document.getElementById("danger-message-text");
+        var findingsList = document.getElementById("danger-findings-list");
+        var safeBox = document.getElementById("safe-result-box");
+        var safePre = document.getElementById("safe-result-pre");
+        var safeLink = document.getElementById("safe-download-link");
+
+        var sourceUrlEl = document.getElementById("source-url");
+        var sourceUrl = sourceUrlEl && sourceUrlEl.value ? sourceUrlEl.value.trim() : "";
+
+        if ((!input.files || !input.files[0]) && !sourceUrl) {
+          status.textContent = "Please select a file or provide a source URL.";
+          status.classList.remove("hidden");
+          return;
+        }
+
+        btn.disabled = true;
+        status.textContent = "Scanning and remediating…";
+        status.classList.remove("hidden");
+        resultArea.classList.add("hidden");
+        dangerBox.classList.add("hidden");
+        safeBox.classList.add("hidden");
+
+        var formData = new FormData();
+        if (input.files && input.files[0]) {
+          formData.set("file", input.files[0]);
+        }
+        if (sourceUrl) {
+          formData.set("source_url", sourceUrl);
+        }
+
+        try {
+          var res = await fetch("/api/scan", { method: "POST", body: formData });
+          var data = await res.json();
+          if (!res.ok) {
+            status.textContent = "Error: " + (data.error || res.statusText);
+            status.classList.add("text-red-400");
+            return;
+          }
+
+          status.textContent = "Done.";
+          status.classList.remove("text-red-400");
+          resultArea.classList.remove("hidden");
+
+          dangerBox.classList.remove("hidden");
+          dangerText.textContent = data.message || (data.danger ? "This file is dangerous." : "This file is safe.");
+          if (typeof data.file_risk_count === "number" || typeof data.url_risk_count === "number") {
+            var fileCount = typeof data.file_risk_count === "number" ? data.file_risk_count : 0;
+            var urlCount = typeof data.url_risk_count === "number" ? data.url_risk_count : 0;
+            dangerText.textContent += " (File risk: " + fileCount + ", URL risk: " + urlCount + ")";
+          }
+          if (data.danger) {
+            dangerBox.className = "rounded-lg border border-red-700/50 bg-red-950/20 p-4";
+            findingsList.innerHTML = (data.findings || []).map(function (f) {
+              var label = (String(f.service || "").toLowerCase() === "source-url") ? "URL" : "FILE";
+              return "<li>[" + label + "] " + (f.message || f.severity) + "</li>";
+            }).join("");
+            findingsList.classList.remove("hidden");
+          } else {
+            dangerBox.className = "rounded-lg border border-emerald-700/50 bg-emerald-950/20 p-4";
+            findingsList.innerHTML = "";
+            findingsList.classList.add("hidden");
+          }
+
+          if (data.safe_content) {
+            safeBox.classList.remove("hidden");
+            safePre.textContent = data.safe_content;
+            safeLink.download = data.safe_file_name || "policy_safe.json";
+            safeLink.href = "data:application/json;charset=utf-8," + encodeURIComponent(data.safe_content);
+          }
+        } catch (err) {
+          status.textContent = "Request failed: " + err.message;
+          status.classList.add("text-red-400");
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      // Show "file selected" indicator when user picks a file
+      document.getElementById("upload-input").addEventListener("change", function () {
+        var indicator = document.getElementById("file-selected-indicator");
+        var nameEl = document.getElementById("file-selected-name");
+        if (this.files && this.files[0]) {
+          nameEl.textContent = this.files[0].name;
+          indicator.classList.remove("hidden");
+        } else {
+          indicator.classList.add("hidden");
+          nameEl.textContent = "";
+        }
+      });
+    </script>
+    <script>
+      const MANUAL_HOURS_PER_SCAN = 4.0;
+      const TOOL_SECONDS_PER_SCAN = 5.0;
+
+      function formatHours(value) {
+        return value.toFixed(1) + " h / week";
+      }
+
+      function updateCalculator() {
+        const inputEl = document.getElementById("input-policies-per-week");
+        const manualEl = document.getElementById("metric-manual-hours");
+        const autoEl = document.getElementById("metric-auto-hours");
+        const savedEl = document.getElementById("metric-time-saved");
+
+        const scansPerWeek = Math.max(1, Number(inputEl.value) || 1);
+        const manualHours = scansPerWeek * MANUAL_HOURS_PER_SCAN;
+        const toolHours = (scansPerWeek * TOOL_SECONDS_PER_SCAN) / 3600.0;
+        const saved = Math.max(0, manualHours - toolHours);
+
+        manualEl.textContent = formatHours(manualHours);
+        autoEl.textContent = formatHours(toolHours);
+        savedEl.textContent = saved.toFixed(1) + " h / week";
+      }
+
+      document
+        .getElementById("input-policies-per-week")
+        .addEventListener("input", updateCalculator);
+
+      document
+        .getElementById("input-scan-results")
+        .addEventListener("change", function (e) {
+          const file = e.target.files && e.target.files[0];
+          const tableWrap = document.getElementById("file-danger-table-wrap");
+          const tbody = document.getElementById("file-danger-tbody");
+          const emptyMsg = document.getElementById("file-danger-empty");
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = function (ev) {
+            try {
+              const data = JSON.parse(ev.target.result);
+              const rows = Array.isArray(data) ? data : [];
+              tableWrap.classList.add("hidden");
+              emptyMsg.classList.add("hidden");
+              tbody.innerHTML = "";
+              if (rows.length === 0) {
+                emptyMsg.classList.remove("hidden");
+                emptyMsg.textContent = "No scan results in this file.";
+                return;
+              }
+              rows.forEach(function (r) {
+                const tr = document.createElement("tr");
+                tr.className = "border-b border-slate-800 hover:bg-slate-800/50";
+                const name = r.file_name || r.file_path || "—";
+                const status = r.status || (r.findings && r.findings.length ? "danger" : "ok");
+                const count = r.finding_count != null ? r.finding_count : (r.findings ? r.findings.length : 0);
+                const score = (r.metrics && r.metrics.compliance_score != null) ? r.metrics.compliance_score : "—";
+                const statusClass = status === "danger" ? "text-red-400 font-medium" : "text-emerald-400";
+                const statusLabel = status === "danger" ? "Danger" : "OK";
+                tr.innerHTML =
+                  "<td class=\"px-3 py-2 font-mono\">" + name + "</td>" +
+                  "<td class=\"px-3 py-2 " + statusClass + "\">" + statusLabel + "</td>" +
+                  "<td class=\"px-3 py-2\">" + count + "</td>" +
+                  "<td class=\"px-3 py-2\">" + score + "</td>";
+                tbody.appendChild(tr);
+              });
+              tableWrap.classList.remove("hidden");
+            } catch (err) {
+              emptyMsg.classList.remove("hidden");
+              emptyMsg.textContent = "Invalid JSON: " + err.message;
+            }
+          };
+          reader.readAsText(file);
+        });
+
+      updateCalculator();
+    </script>
+  </body>
+</html>
+

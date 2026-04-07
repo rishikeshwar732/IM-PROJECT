@@ -1,0 +1,22 @@
+database:
+  host: localhost
+  port: 5432
+  username: admin
+  password: "Super$ecure123!Pass"
+  
+api_keys:
+  google_api: "AIzaSyDummyKeyWithRealStructure1234567890"
+  aws_access_key: "AKIAIOSFODNN7EXAMPLE"
+  aws_secret_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+
+cloud_config:
+  s3_bucket: "internal-backups"
+  iam_role: "arn:aws:iam::123456789012:role/AdminRole"
+  
+credentials:
+  database_url: "postgresql://admin:password123@db.company.com:5432/prod"
+  api_token: "ghp_1234567890abcdefghijklmnopqrstuvwxyz"
+  ssh_key: |
+    -----BEGIN RSA PRIVATE KEY-----
+    MIIEpAIBAAKCAQEA1234567890abcdefghijklmnopqrstuvwxyz
+    -----END RSA PRIVATE KEY-----
